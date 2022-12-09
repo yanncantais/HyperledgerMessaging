@@ -1,14 +1,29 @@
 import asyncio
 import time
 import re
-
+from kivy.app import App
+from kivy.uix.button import Button
 from indy import crypto, did, wallet
 from multiprocessing import Process
 import threading
 
 
+class MyApp(App):
+    def build(self):
+        # Create a button widget
+        button = Button(text="Create Wallet and DID")
 
+        # Bind the on_release event of the button to a callback function
+        button.bind(on_release=self.run_init)
 
+        return button
+    def run_init(self, instance):
+      try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(demo())
+        time.sleep(1)  # waiting for libindy thread complete
+      except KeyboardInterrupt:
+        print('')
 
 async def init():
     wallet_config = '{"id": "%s-wallet"}'
@@ -73,9 +88,4 @@ async def demo():
     # await task2
 
 if __name__ == '__main__':
-    try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(demo())
-        time.sleep(1)  # waiting for libindy thread complete
-    except KeyboardInterrupt:
-        print('')
+    MyApp().run()
