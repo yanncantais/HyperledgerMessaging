@@ -76,14 +76,14 @@ async def init():
         print("wallet created")
     except:
         pass
-    wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
-    print('wallet = %s' % wallet_handle)
+    wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)       
+    print('wallet = %s' % wallet_handle)    
     (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
     print('my_did and verkey = %s %s' % (my_did, my_vk))
     #else:
         #did_vk = input("Your DID and verkey? ").strip().split(' ')
         #my_did = did_vk[0]
-        #my_vk = did_vk[1]
+        #my_vk = did_vk[1]   
     return wallet_handle, my_did, my_vk
 
 
