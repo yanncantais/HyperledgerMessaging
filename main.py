@@ -1,22 +1,64 @@
 import asyncio
 import time
 import re
+#kivy
 from kivy.app import App
+from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.camera import Camera
+#QRCODE
+from kivy_garden.qrcode import QRCodeWidget
+#indy
 from indy import crypto, did, wallet
+
 from multiprocessing import Process
 import threading
 
 
 class MyApp(App):
     def build(self):
+        # Create a layout
+        layout = BoxLayout(orientation="vertical")
+        
+        qr_code_label = Label(text="")
+        layout.add_widget(qr_code_label)
+        
+        scan_button = Button(text="Scan QR code", on_press=self.start_scanning)
+        layout.add_widget(scan_button)
+        
         # Create a button widget
         button = Button(text="Create Wallet and DID")
-
+        
+        #self.camera = Camera(resolution=(640, 480))
+        #layout.add_widget(self.camera)
+        
+        self.qr_code_widget=QRCodeWidget()
+        layout.add_widget(self.qr_code_widget)
+        
         # Bind the on_release event of the button to a callback function
         button.bind(on_release=self.run_init)
 
-        return button
+        #create tabbed panel
+        tp=TabbedPanel()
+        tp.default_tab_text = "QR Scanner"
+        
+        #now add content in default tab
+        tp.default_tab_content = layout
+        
+        th= TabbedPanelHeader(text = "DID")
+        th.content = button
+        tp.add_widget(th)
+        
+        return tp
+        
+    def start_scanning(self, instance):
+      self.qr_code_widget.start()
+    def on_qr_code(self, instance):
+      qr_code_label.text = qr_code
+        
+        
     def run_init(self, instance):
       try:
         loop = asyncio.get_event_loop()
@@ -25,6 +67,7 @@ class MyApp(App):
       except KeyboardInterrupt:
         print('')
 
+#Creates wallet and did,verkey
 async def init():
     wallet_config = '{"id": "%s-wallet"}'
     wallet_credentials = '{"key": "%s-wallet-key"}'
@@ -79,7 +122,7 @@ async def read(wallet_handle, my_vk):
 
         
 
-
+#launch init()
 async def demo():
     wallet_handle, my_did, my_vk = await init()
     # task1 = asyncio.create_task(read_infinite(wallet_handle, my_vk))
