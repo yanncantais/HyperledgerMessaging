@@ -30,6 +30,10 @@ Next, you will need to create a configuration file that specifies the details of
 
 Once you have created the pool configuration, you can use the indy-sdk to initialize the pool and create the necessary ledger and storage components. This typically involves running a command-line utility provided by the indy-sdk, and passing it the path to your pool configuration file.
 
+1. Run the **`pool_create`** command: After you have created the pool configuration file, you can use the indy-sdk to initialize the pool. This typically involves running the **`pool_create`** command provided by the indy-sdk, and passing it the path to your pool configuration file as an argument.
+
+2. Verify the pool: After the **`pool_create`** command has been run, you can use the indy-sdk or other relevant tools to verify that the pool has been initialized correctly. This typically involves running the **`pool_list`** command to list all of the pools on the network, and then checking that your pool is included in the list.
+
 ## 4. Start the pool:
 
 After the pool has been initialized, you can start it by running another command-line utility provided by the indy-sdk. This will launch the pool and make it available for use by other indy clients and applications.
