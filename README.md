@@ -6,7 +6,7 @@ A dApp to send messages between agents
 
 # I. Set up the indy pool:
 
-To create an indy pool, you will need to install the necessary software and dependencies on a server or cloud-based environment. This typically involves downloading the indy-sdk and other required libraries, and then configuring the pool to meet your specific requirements.
+To create an indy pool, it's needed to install the necessary software and dependencies on a server or cloud-based environment. This typically involves downloading the indy-sdk and other required libraries, and then configuring the pool to meet your specific requirements.
 
 ## 1. Install the indy-sdk:
 
@@ -14,29 +14,29 @@ The first step is to download and install the indy-sdk, which is the software pa
 
 ## 2. Create a pool configuration:
 
-Next, you will need to create a configuration file that specifies the details of your indy pool, such as its name and the network on which it will operate. This configuration file typically uses a JSON format, and it will be used to initialize and manage your indy pool.
+Next, a configuration file has to be created that specifies the details of your indy pool, such as its name and the network on which it will operate. This configuration file typically uses a JSON format, and it will be used to initialize and manage your indy pool.
 
 1. Create a new file: The first step is to create a new file using a text editor or other tool. This file will contain the configuration for your indy pool, and it will typically use a JSON format.
 
-2. Specify the pool name: Next, you will need to specify the name of your indy pool in the configuration file. This name should be unique within the network on which your pool will operate, and it will be used to identify and distinguish your pool from other pools on the network.
+2. Specify the pool name: Next, specify the name of your indy pool in the configuration file. This name should be unique within the network on which your pool will operate, and it will be used to identify and distinguish your pool from other pools on the network.
 
-3. Specify the network: After specifying the pool name, you will need to specify the network on which your pool will operate. This could be an existing network such as the Indy Test Network, or it could be a custom network that you have created for your specific use cases.
+3. Specify the network: After specifying the pool name, specify the network on which your pool will operate. This could be an existing network such as the Indy Test Network, or it could be a custom network that you have created for your specific use cases.
 
-4. Specify the pool Genesis transactions: In addition to the pool name and network, you will also need to specify the pool Genesis transactions in your configuration file. These transactions are special transactions that are used to initialize the pool's ledger and storage components, and they must be specified in the configuration file in order for the pool to function correctly.
+4. Specify the pool Genesis transactions: In addition to the pool name and network, specify the pool Genesis transactions in your configuration file. These transactions are special transactions that are used to initialize the pool's ledger and storage components, and they must be specified in the configuration file in order for the pool to function correctly.
 
-5. Save the configuration file: After you have specified all of the necessary details in the configuration file, you can save it in a convenient location. This file will be used to initialize and manage your indy pool, so it's important to keep it in a safe and secure place.
+5. Save the configuration file: After specifying all of the necessary details in the configuration file, you can save it in a convenient location. This file will be used to initialize and manage your indy pool, so it's important to keep it in a safe and secure place.
 
 ## 3. Initialize the pool:
 
-Once you have created the pool configuration, you can use the indy-sdk to initialize the pool and create the necessary ledger and storage components. This typically involves running a command-line utility provided by the indy-sdk, and passing it the path to your pool configuration file.
+Once the pool configuration created, indy-sdk can be used to initialize the pool and create the necessary ledger and storage components. This typically involves running a command-line utility provided by the indy-sdk, and passing it the path to your pool configuration file.
 
-1. Run the **`pool_create`** command: After you have created the pool configuration file, you can use the indy-sdk to initialize the pool. This typically involves running the **`pool_create`** command provided by the indy-sdk, and passing it the path to your pool configuration file as an argument.
+1. Run the **`pool_create`** command: After the pool configuration file created, the indy-sdk can initialize the pool. This typically involves running the **`pool_create`** command provided by the indy-sdk, and passing it the path to your pool configuration file as an argument.
 
-2. Verify the pool: After the **`pool_create`** command has been run, you can use the indy-sdk or other relevant tools to verify that the pool has been initialized correctly. This typically involves running the **`pool_list`** command to list all of the pools on the network, and then checking that your pool is included in the list.
+2. Verify the pool: After the **`pool_create`** command has been run, indy-sdk can verify that the pool has been initialized correctly. This typically involves running the **`pool_list`** command to list all of the pools on the network, and then checking that your pool is included in the list.
 
 ## 4. Start the pool:
 
-After the pool has been initialized, you can start it by running another command-line utility provided by the indy-sdk. This will launch the pool and make it available for use by other indy clients and applications.
+After the pool has been initialized, start it by running another command-line utility provided by the indy-sdk. This will launch the pool and make it available for use by other indy clients and applications.
 
 ## 5. Configure the pool
 
