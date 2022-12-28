@@ -1,6 +1,8 @@
 import asyncio
 import time
 import re
+import requests
+import aries_cloudagent
 #kivy
 from kivy.app import App
 from kivy.uix.label import Label
@@ -9,7 +11,7 @@ from kivy.uix.tabbedpanel import TabbedPanel, TabbedPanelHeader
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.camera import Camera
 #QRCODE
-from kivy_garden.qrcode import QRCodeWidget
+#from kivy_garden.qrcode import QRCodeWidget
 #indy
 from indy import crypto, did, wallet
 
@@ -17,16 +19,17 @@ from multiprocessing import Process
 import threading
 
 
+
 class MyApp(App):
     def build(self):
         # Create a layout
         layout = BoxLayout(orientation="vertical")
         
-        qr_code_label = Label(text="")
-        layout.add_widget(qr_code_label)
+        #qr_code_label = Label(text="")
+        #layout.add_widget(qr_code_label)
         
-        scan_button = Button(text="Scan QR code", on_press=self.start_scanning)
-        layout.add_widget(scan_button)
+        #scan_button = Button(text="Scan QR code", on_press=self.start_scanning)
+        #layout.add_widget(scan_button)
         
         # Create a button widget
         button = Button(text="Create Wallet and DID")
@@ -34,8 +37,8 @@ class MyApp(App):
         #self.camera = Camera(resolution=(640, 480))
         #layout.add_widget(self.camera)
         
-        self.qr_code_widget=QRCodeWidget()
-        layout.add_widget(self.qr_code_widget)
+        #self.qr_code_widget=QRCodeWidget()
+        #layout.add_widget(self.qr_code_widget)
         
         # Bind the on_release event of the button to a callback function
         button.bind(on_release=self.run_init)
@@ -53,10 +56,10 @@ class MyApp(App):
         
         return tp
         
-    def start_scanning(self, instance):
-      self.qr_code_widget.start()
-    def on_qr_code(self, instance):
-      qr_code_label.text = qr_code
+    #def start_scanning(self, instance):
+      #self.qr_code_widget.start()
+    #def on_qr_code(self, instance):
+      #qr_code_label.text = qr_code
         
         
     def run_init(self, instance):
@@ -83,7 +86,22 @@ async def init():
     #else:
         #did_vk = input("Your DID and verkey? ").strip().split(' ')
         #my_did = did_vk[0]
-        #my_vk = did_vk[1]   
+        #my_vk = did_vk[1]
+        # 
+        #    
+    #post the new did on the von network
+    r = requests.post("http://localhost:9000/register", json={'role': 'ENDORSER', 'alias': 'papa', 'did':0, 'seed': 'papa'})
+    print(r.status_code, r.reason)
+    print(r.text[:300] + '...')
+
+    #start acapy agent
+    #aries_cloudagent.
+
+    #create an invitation
+
+    #transform it into qr
+
+    #send messages
     return wallet_handle, my_did, my_vk
 
 
