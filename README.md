@@ -1,7 +1,6 @@
 # HyperledgerMessaging
 A dApp to send messages between agents
 
-
 # Step by step
 
 # I. Set up the indy pool:
