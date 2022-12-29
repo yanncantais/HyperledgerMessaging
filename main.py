@@ -3,6 +3,7 @@ import time
 import re
 import requests
 import aries_cloudagent
+import subprocess
 #kivy
 from kivy.app import App
 from kivy.uix.label import Label
@@ -18,6 +19,7 @@ from indy import crypto, did, wallet
 from multiprocessing import Process
 import threading
 
+from aries_cloudagent.commands import start
 
 
 class MyApp(App):
@@ -33,7 +35,7 @@ class MyApp(App):
         
         # Create a button widget
         button = Button(text="Create Wallet and DID")
-        
+        buttoninvitation = Button(text = "create invitation")
         #self.camera = Camera(resolution=(640, 480))
         #layout.add_widget(self.camera)
         
@@ -52,14 +54,53 @@ class MyApp(App):
         
         th= TabbedPanelHeader(text = "DID")
         th.content = button
+
+        invitation = TabbedPanelHeader(text = "Invit")
+        invitation.content = buttoninvitation
+        buttoninvitation.bind(on_release=self.run_invitation)
         tp.add_widget(th)
-        
+        tp.add_widget(invitation)
         return tp
         
     #def start_scanning(self, instance):
       #self.qr_code_widget.start()
     #def on_qr_code(self, instance):
       #qr_code_label.text = qr_code
+        
+    def run_invitation(self, instance):
+        print('creating invitation link')
+        
+
+        r = requests.post("http://localhost:11000/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
+                   "@id": "c927b4a7-1901-433e-ac3f-16158431fd0a",
+                   "handshake_protocols": [
+                   "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+                    ],
+                    "label": "Alice",
+                    "service": [
+                    "did:sov:UpFt248WuA5djSFThNjBhq"
+                    ]
+                    })
+        print(r.status_code, r.reason)
+        print(r.text[:300] + '...')
+        import qrcode
+        # Data to be encoded
+        json = {"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
+                   "@id": "c927b4a7-1901-433e-ac3f-16158431fd0a",
+                   "handshake_protocols": [
+                   "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+                    ],
+                    "label": "Alice",
+                    "service": [
+                    "did:sov:UpFt248WuA5djSFThNjBhq"
+                    ]
+                    }
+ 
+        # Encoding data using make() function
+        img = qrcode.make(json)
+        # Saving as an image file
+        img.save('MyQRCode1.png')
+        return img
         
         
     def run_init(self, instance):
@@ -95,7 +136,12 @@ async def init():
     print(r.text[:300] + '...')
 
     #start acapy agent
-    #aries_cloudagent.
+    
+    
+    
+
+    # Start the agent
+    
 
     #create an invitation
 
@@ -103,6 +149,7 @@ async def init():
 
     #send messages
     return wallet_handle, my_did, my_vk
+    
 
 
     
@@ -138,7 +185,29 @@ async def read(wallet_handle, my_vk):
     
     
 
-        
+
+async def init():
+    wallet_config = '{"id": "%s-wallet"}'
+    wallet_credentials = '{"key": "%s-wallet-key"}'
+    try:
+        await wallet.create_wallet(wallet_config, wallet_credentials)
+        print("wallet created")
+    except:
+        pass
+    wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)       
+    print('wallet = %s' % wallet_handle)    
+    (my_did, my_vk) = await did.create_and_store_my_did(wallet_handle, "{}")
+    print('my_did and verkey = %s %s' % (my_did, my_vk))
+    #else:
+        #did_vk = input("Your DID and verkey? ").strip().split(' ')
+        #my_did = did_vk[0]
+        #my_vk = did_vk[1]
+        # 
+        #    
+    #post the new did on the von network
+    r = requests.post("http://localhost:9000/register", json={'role': 'ENDORSER', 'alias': 'papa', 'did':0, 'seed': 'papa'})
+    print(r.status_code, r.reason)
+    print(r.text[:300] + '...')
 
 #launch init()
 async def demo():
