@@ -1,0 +1,25 @@
+<ChatPage>:
+	BoxLayout:
+		id: layout
+		orientation: 'vertical'
+		padding: [10,50,10,50]
+		spacing: 30
+		Button:
+			text: 'Back to your account'
+			font_size: 20
+			size_hint: 0.3, 1
+			on_press: root.do_account()
+		Label:
+			id: contact_label
+			text: "Messages :"
+			font_size: 32
+			
+		TextInput:
+			id: message
+			multiline: False
+			size_hint: (1, .5)
+		
+		Button:
+			text: "Send message"
+			font_size: 20
+			on_press: root.send(message.text)

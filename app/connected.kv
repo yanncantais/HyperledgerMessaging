@@ -1,0 +1,24 @@
+<Connected>:
+    BoxLayout:
+        orientation: 'vertical'
+		padding: [10,50,10,50]
+        spacing: 30
+        Label:
+            text: "Enter the QR Code of the contact :"
+            font_size: 32
+			
+		TextInput:
+			id: contact
+			multiline: False
+			size_hint: (1, .5)
+		
+		Button:
+            text: "Connect"
+            font_size: 24
+            on_press: root.contact(contact.text)
+
+		
+        Button:
+            text: "Sign out"
+            font_size: 20
+            on_press: root.disconnect()
