@@ -35,24 +35,16 @@ def allocated_port(first_port):
 
 proc = None
 
-class Connected(Screen): 
-    def on_enter(self):
-        app = App.get_running_app()
-        if not app.Registered:
-            self.ids.welcome_label.text = "Welcome "+str(app.username)
-            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
-            r = requests.post("http://localhost:9000/register", json=json_register)
-            print(r.status_code, r.reason)
-            print(r.text[:300] + '...')
-            app.Registered = True
+class Connected(Screen):    
+        
     def create_agent(self):
         global proc
         app = App.get_running_app()
         user = app.username
         pwd = app.password
-        first_port = allocated_port(8000)
+        first_port = allocated_port(app.first_port)
         app.first_port = first_port
-        second_port = allocated_port(11000)
+        second_port = allocated_port(app.second_port)
         app.second_port = second_port
         seed = user.ljust(32, '0')
         cmd = """aca-py start \
@@ -75,15 +67,39 @@ class Connected(Screen):
             cmd_list.append(m)
         while '' in cmd_list:
             cmd_list.remove('')
-        proc = subprocess.Popen(cmd_list)      
+        proc = subprocess.Popen(cmd_list)  
+        
+        
+    def on_enter(self):
+        app = App.get_running_app()
+        if not app.Registered:
+            self.ids.welcome_label.text = "Welcome "+str(app.username)
+            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
+            r = requests.post("http://localhost:9000/register", json=json_register)
+            print(r.status_code, r.reason)
+            print(r.text[:300] + '...')
+            app.Registered = True
+        if not app.AgentCreated:
+            self.create_agent()
+            app.AgentCreated = True
+        
+    def see_invitations(self):
+        self.manager.transition = SlideTransition(direction="left")
+        self.manager.current = 'invitations'
     
     def contact(self, contact):
         app = App.get_running_app()
         app.contact = contact
         img=cv2.imread("QRCode"+contact+".png")
         det=cv2.QRCodeDetector()
-        val, pts, st_code=det.detectAndDecode(img)
-        print(val)
+        invitation, pts, st_code=det.detectAndDecode(img)
+        invitation = invitation.replace("'",'"')
+        invitation = json.loads(invitation)
+        r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/out-of-band/receive-invitation", json = invitation)
+        print(r.text)
+        
+        
+        
         self.manager.get_screen('chat_page').load()
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'chat_page'
@@ -158,7 +174,25 @@ class Home(Screen):
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'sign_up'
 
+    
+
+class Invitations(Screen):
+    def on_enter(self): 
+        app = App.get_running_app()
+        Invitations = []
+        r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
+        r_json = json.loads(r)
+        r_json = r_json["results"]
+        for item in r_json:
+            if item["rfc23_state"] == "invitation-received":
+                Invitations.append([item["their_label"], item["connection_id"]])
+        print(Invitations)
         
+    def profile(self):
+        
+        self.manager.transition = SlideTransition(direction="right")
+        self.manager.current = 'connected'
+
 class Invite(Screen):
     def on_enter(self):  
         for widget in self.ids.qr_layout.walk():
@@ -255,6 +289,7 @@ class LoginApp(App):
     password = StringProperty(None)
     contact = StringProperty(None)
     Registered = False
+    AgentCreated = False
     first_port = 8000
     second_port = 11000
     
@@ -265,7 +300,8 @@ class LoginApp(App):
         manager.add_widget(SignUp(name='sign_up'))
         manager.add_widget(Connected(name='connected'))       
         manager.add_widget(ChatPage(name='chat_page'))     
-        manager.add_widget(Invite(name='invite'))     
+        manager.add_widget(Invite(name='invite'))  
+        manager.add_widget(Invitations(name='invitations'))  
         return manager
 
 

@@ -9,10 +9,10 @@
 			size_hint: 0.3, 1
 			on_press: root.invite()
 		Button:
-			text: 'Create Agent'
+			text: 'See invitations'
 			font_size: 20
 			size_hint: 0.3, 1
-			on_press: root.create_agent()
+			on_press: root.see_invitations()
 		Label:
 			id: welcome_label
             text: 'Welcome'
@@ -53,4 +53,19 @@
 			text: 'Loading...'
 			font_size: 32
 
+<Invitations>:
+    BoxLayout:
+        orientation: 'vertical'
+		padding: [10,50,10,50]
+        spacing: 30
+		id: invitation_layout
+		Button:
+			text: 'Back to profile'
+			font_size: 20
+			size_hint: 0.3, 0.2
+			on_press: root.profile()			
+		Label:
+			id: invitations_label
+			text: 'Invitations'
+			font_size: 32
 		
