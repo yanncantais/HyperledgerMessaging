@@ -12,15 +12,71 @@ import json
 from kivy.clock import Clock
 import requests
 import qrcode
+import os
+import subprocess
+import signal
 
 async def close_wallet(wallet_handle):
     await wallet.close_wallet(wallet_handle)
 
 
-class Connected(Screen):  
+def allocated_port(first_port):
+    port = first_port
+    FoundPort = False
+    while FoundPort == False:
+        try:
+            requests.get("http://localhost:"+str(port))
+            port+=1
+        except:
+            FoundPort = True
+    return port
+
+
+proc = None
+
+class Connected(Screen): 
+    def create_agent(self):
+        global proc
+        app = App.get_running_app()
+        user = app.username
+        pwd = app.password
+        first_port = allocated_port(8000)
+        second_port = allocated_port(11000)
+        seed = user.ljust(32, '0')
+        cmd = """aca-py start \
+        --label """+user+""" \
+        -it http 0.0.0.0 """+str(first_port)+""" \
+        -ot http \
+        --admin 0.0.0.0 """+str(second_port)+""" \
+        --admin-insecure-mode \
+        --genesis-url http://localhost:9000/genesis \
+        --seed """+seed+""" \
+        --endpoint http://localhost:"""+str(first_port)+"""/ \
+        --debug-connections \
+        --public-invites \
+        --auto-provision \
+        --wallet-type indy \
+        --wallet-name """+user+"""-wallet \
+        --wallet-key """+pwd
+        cmd_list = []
+        for m in cmd.split(" "):
+            cmd_list.append(m)
+        while '' in cmd_list:
+            cmd_list.remove('')
+        proc = subprocess.Popen(cmd_list)
+            
+            
+            
+            
     def on_enter(self):
         app = App.get_running_app()
-        self.ids.welcome_label.text = "Welcome "+str(app.username)
+        if not app.Registered:
+            self.ids.welcome_label.text = "Welcome "+str(app.username)
+            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
+            r = requests.post("http://localhost:9000/register", json=json_register)
+            print(r.status_code, r.reason)
+            print(r.text[:300] + '...')
+            app.Registered = True
     def contact(self, contact):
         app = App.get_running_app()
         app.contact = contact        
@@ -33,6 +89,7 @@ class Connected(Screen):
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'invite'
     def disconnect(self):
+        global proc
         app = App.get_running_app()
         loop = asyncio.get_event_loop()
         loop.run_until_complete(close_wallet(app.login))
@@ -40,6 +97,10 @@ class Connected(Screen):
         self.manager.current = 'login'
         self.manager.get_screen('login').resetForm()
         self.manager.get_screen('sign_up').resetForm()
+        # print(proc)
+        # if proc is not None:
+        #     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            # proc.terminate()
 
 
 async def login(me, key):
@@ -129,6 +190,10 @@ class Invite(Screen):
         self.manager.current = 'connected'
 
 
+# class CreateAgent(Screen):
+    
+
+
 class Login(Screen):
     
     def do_login(self, loginText, passwordText):
@@ -190,6 +255,7 @@ class LoginApp(App):
     username = StringProperty(None)
     password = StringProperty(None)
     contact = StringProperty(None)
+    Registered = False
     
     def build(self):    
         manager = ScreenManager()
@@ -202,5 +268,12 @@ class LoginApp(App):
         return manager
 
 
+# def handler(signum, frame):  
+    
+#     exit(1)
+ 
+# signal.signal(signal.SIGINT, handler)
+
 if __name__ == '__main__':
     LoginApp().run()
+    
