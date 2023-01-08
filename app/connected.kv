@@ -3,9 +3,18 @@
         orientation: 'vertical'
 		padding: [10,50,10,50]
         spacing: 30
+		Button:
+			text: 'Send invitation'
+			font_size: 20
+			size_hint: 0.3, 1
+			on_press: root.invite()
+		Label:
+			id: welcome_label
+            text: 'Welcome'
+            font_size: 32
         Label:
             text: "Enter the QR Code of the contact :"
-            font_size: 32
+            font_size: 25
 			
 		TextInput:
 			id: contact
@@ -22,3 +31,21 @@
             text: "Sign out"
             font_size: 20
             on_press: root.disconnect()
+			
+<Invite>:
+    BoxLayout:
+        orientation: 'vertical'
+		padding: [10,50,10,50]
+        spacing: 30
+		id: qr_layout
+		Button:
+			text: 'Back to profile'
+			font_size: 20
+			size_hint: 0.3, 0.2
+			on_press: root.profile()			
+		Label:
+			id: loading_label
+			text: 'Loading...'
+			font_size: 32
+
+		
