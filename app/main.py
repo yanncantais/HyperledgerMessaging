@@ -96,10 +96,12 @@ class Connected(Screen):
         invitation = invitation.replace("'",'"')
         invitation = json.loads(invitation)
         r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/out-of-band/receive-invitation", json = invitation)
+        print(r.text)  
+        response = json.loads(r.text)
+        connection_id = response["connection_id"]
+        print(connection_id)
+        r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+connection_id+"/accept-invitation")
         print(r.text)
-        
-        
-        
         self.manager.get_screen('chat_page').load()
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'chat_page'
@@ -184,7 +186,7 @@ class Invitations(Screen):
         r_json = json.loads(r)
         r_json = r_json["results"]
         for item in r_json:
-            if item["rfc23_state"] == "invitation-received":
+            if item["rfc23_state"] == "request-received":
                 Invitations.append([item["their_label"], item["connection_id"]])
         print(Invitations)
         
