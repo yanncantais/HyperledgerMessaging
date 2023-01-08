@@ -15,6 +15,7 @@ import qrcode
 import os
 import subprocess
 import signal
+import cv2
 
 async def close_wallet(wallet_handle):
     await wallet.close_wallet(wallet_handle)
@@ -35,13 +36,24 @@ def allocated_port(first_port):
 proc = None
 
 class Connected(Screen): 
+    def on_enter(self):
+        app = App.get_running_app()
+        if not app.Registered:
+            self.ids.welcome_label.text = "Welcome "+str(app.username)
+            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
+            r = requests.post("http://localhost:9000/register", json=json_register)
+            print(r.status_code, r.reason)
+            print(r.text[:300] + '...')
+            app.Registered = True
     def create_agent(self):
         global proc
         app = App.get_running_app()
         user = app.username
         pwd = app.password
         first_port = allocated_port(8000)
+        app.first_port = first_port
         second_port = allocated_port(11000)
+        app.second_port = second_port
         seed = user.ljust(32, '0')
         cmd = """aca-py start \
         --label """+user+""" \
@@ -63,23 +75,15 @@ class Connected(Screen):
             cmd_list.append(m)
         while '' in cmd_list:
             cmd_list.remove('')
-        proc = subprocess.Popen(cmd_list)
-            
-            
-            
-            
-    def on_enter(self):
-        app = App.get_running_app()
-        if not app.Registered:
-            self.ids.welcome_label.text = "Welcome "+str(app.username)
-            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
-            r = requests.post("http://localhost:9000/register", json=json_register)
-            print(r.status_code, r.reason)
-            print(r.text[:300] + '...')
-            app.Registered = True
+        proc = subprocess.Popen(cmd_list)      
+    
     def contact(self, contact):
         app = App.get_running_app()
-        app.contact = contact        
+        app.contact = contact
+        img=cv2.imread("QRCode"+contact+".png")
+        det=cv2.QRCodeDetector()
+        val, pts, st_code=det.detectAndDecode(img)
+        print(val)
         self.manager.get_screen('chat_page').load()
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'chat_page'
@@ -159,28 +163,23 @@ class Invite(Screen):
     def on_enter(self):  
         for widget in self.ids.qr_layout.walk():
             if isinstance(widget, Image):
-                self.ids.qr_layout.remove_widget(widget)
-                
+                self.ids.qr_layout.remove_widget(widget)                
         app = App.get_running_app()            
         print('creating invitation link')   
-        json_did = {"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
-                   "@id": "c927b4a7-1901-433e-ac3f-16158431fd0a",
-                   "handshake_protocols": [
-                   "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-                    ],
-                    "label": app.username,
-                    "service": [
-                    "did:sov:UpFt248WuA5djSFThNjBhq"
-                    ]
-                    }
-        # r = requests.post("http://localhost:11000/out-of-band/create-invitation", json = json_did)
-        # print(r.status_code, r.reason)
-        # print(r.text[:300] + '...')
-        # Encoding data using make() function
-        img = qrcode.make(json_did)
+        r = requests.post("http://localhost:"+str(app.second_port)+"/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
+                           "handshake_protocols": [
+                           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+                            ],
+                            "label": app.username,                  
+                            })
+        json_response = json.loads(r.text)
+        json_invite = json_response["invitation"]       
+        
+    
+        img = qrcode.make(json_invite)
         # Saving as an image file
-        img.save('MyQRCode1.png')
-        wimg = Image(source='MyQRCode1.png')
+        img.save('QRCode'+app.username+'.png')
+        wimg = Image(source='QRCode'+app.username+'.png')
         self.ids.qr_layout.remove_widget(self.ids.loading_label)
         self.ids.qr_layout.add_widget(wimg)
                      
@@ -256,6 +255,8 @@ class LoginApp(App):
     password = StringProperty(None)
     contact = StringProperty(None)
     Registered = False
+    first_port = 8000
+    second_port = 11000
     
     def build(self):    
         manager = ScreenManager()
