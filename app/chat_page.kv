@@ -2,24 +2,33 @@
 	BoxLayout:
 		id: layout
 		orientation: 'vertical'
-		padding: [10,50,10,50]
+		padding: [10,30,30,50]
 		spacing: 30
 		Button:
 			text: 'Back to your account'
 			font_size: 20
-			size_hint: 0.3, 1
+			size_hint: 0.3, 0.3
 			on_press: root.do_account()
 		Label:
 			id: contact_label
 			text: "Messages :"
 			font_size: 32
-			
-		TextInput:
-			id: message
-			multiline: False
-			size_hint: (1, .5)
+		Label:
+			id: messages_label
+			text: "bla bla bla"
+			font_size: 20	
 		
-		Button:
-			text: "Send message"
-			font_size: 20
-			on_press: root.send(message.text)
+		BoxLayout:
+			id: layout_2
+			orientation: 'horizontal'
+			padding: [10,30,10,30]
+			spacing: 10	
+			TextInput:
+				id: message
+				multiline: False
+				size_hint: (0.7, 0.7)		
+			Button:
+				text: "Send message"
+				font_size: 23
+				size_hint: (0.3, 0.7)		
+				on_press: root.send(message.text)

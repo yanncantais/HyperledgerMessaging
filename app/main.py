@@ -17,6 +17,7 @@ import subprocess
 import signal
 import cv2
 import time
+from flask import Flask, request
 
 async def close_wallet(wallet_handle):
     await wallet.close_wallet(wallet_handle)
@@ -109,9 +110,9 @@ class Connected(Screen):
         print(connection_id)
         r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+connection_id+"/accept-invitation")
         print(r.text)
-        self.manager.get_screen('chat_page').load()
-        self.manager.transition = SlideTransition(direction="left")
-        self.manager.current = 'chat_page'
+        # self.manager.get_screen('chat_page').load()
+        # self.manager.transition = SlideTransition(direction="left")
+        # self.manager.current = 'chat_page'
         print(contact)
         print(app.login)
     def invite(self):
@@ -136,8 +137,8 @@ class Connected(Screen):
 async def login(me, key):
     wallet_config = '{"id": "%s-wallet"}' % me
     wallet_credentials = '{"key": "%s"}' % key
+    print(wallet_config, wallet_credentials)
     wallet_handle = None
-    
     try:        
         wallet_handle = await wallet.open_wallet(wallet_config, wallet_credentials)
         success = True
@@ -163,13 +164,27 @@ async def sign(me, key):
 
 
 class ChatPage(Screen):
-    def load(self, **kwargs):
+    def on_enter(self, **kwargs):
+        app_flask = Flask(__name__)        
+        @app_flask.route('/webhooks/topic/basicmessages/', methods=['POST'])
+        def webhook():
+            # Process the webhook request
+            data = request.get_json()
+            print(data)
+            return "OK"
         app = App.get_running_app()
-        self.ids.contact_label.text = "Message with "+str(app.contact)       
+        self.ids.contact_label.text = "Message with "+str(app.contact)
+        app_flask.run(host='localhost', port=10000)
         
         
     def send(self, message):
+        app = App.get_running_app()
+        connection_id = app.contact_connection_id
         print("message", message, " will be sent")
+        url = "http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/send-message"
+        response = requests.post(url, json = {"content": message})
+        print(response.text)
+        
 
     def do_account(self):
         self.manager.transition = SlideTransition(direction="right")
@@ -212,6 +227,8 @@ class Invitations(Screen):
         text, url = item
         response = requests.post(url)
         print(response.text)
+        self.manager.transition = SlideTransition(direction="right")
+        self.manager.current = 'connected'
         
         
     def profile(self):
@@ -235,7 +252,8 @@ class SendMessages(Screen):
         r_json = r_json["results"]
         for item in r_json:
             if item["rfc23_state"] == "completed":
-                Contacts.append(("Talk to "+item["their_label"], "http://0.0.0.0:"+str(app.second_port)+"/connections/"+item["connection_id"]+"/send-message"))
+                Contacts.append((item["their_label"], item["connection_id"]))
+                # Contacts.append(("Talk to "+item["their_label"], "http://0.0.0.0:"+str(app.second_port)+"/connections/"+item["connection_id"]+"/send-message"))
         print(Contacts)
     
         for item in Contacts:
@@ -245,9 +263,17 @@ class SendMessages(Screen):
 
     def button_pressed(self, item):
         # This function will be called when the button is pressed
-        text, url = item
-        response = requests.post(url, json = {"content": "test"})
-        print(response.text)
+        
+        
+        ctc, ctc_id = item
+        app = App.get_running_app()
+        app.contact = ctc
+        app.contact_connection_id = ctc_id
+        self.manager.transition = SlideTransition(direction="left")
+        self.manager.current = 'chat_page'
+        
+        
+        
         
         
     def profile(self):
@@ -354,6 +380,8 @@ class SignUp(Screen):
             app.login = wallet_handle
             json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
             requests.post("http://localhost:9000/register", json=json_register)
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(close_wallet(app.login))
             self.manager.transition = SlideTransition(direction="left")
             self.manager.current = 'login'
             self.manager.get_screen('login').fillForm(loginText, passwordText)

@@ -44,12 +44,14 @@ r = requests.get("http://0.0.0.0:"+str(second_port)+"/connections").text
 r_json = json.loads(r)
 r_json = r_json["results"]
 for item in r_json:
-    if item["rfc23_state"] == "request-received":
-        Invitations.append([item["their_label"], item["connection_id"]])
-
-print(Invitations)
+    print(item)
 
 
+
+second_port = 11000
+Invitations = []
+r = requests.get("http://0.0.0.0:"+str(second_port)+"/ce6ebe5e-f668-48b2-ad49-ac73f701de3f/endpoints").text
+print(r)
 
 
 

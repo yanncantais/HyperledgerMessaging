@@ -1,8 +1,8 @@
 from flask import Flask, request
 
-app = Flask(__name__)
+app_flask = Flask(__name__)
 
-@app.route('/webhooks/topic/basicmessages/', methods=['POST'])
+@app_flask.route('/webhooks/topic/basicmessages/', methods=['POST'])
 def webhook():
     # Process the webhook request
     data = request.get_json()
@@ -10,4 +10,4 @@ def webhook():
     return "OK"
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=10000)
+    app_flask.run(host='localhost', port=10000)
