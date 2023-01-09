@@ -14,6 +14,7 @@ import cv2
 import time
 from flask import Flask, request
 import threading
+import os
 
 
 
@@ -100,39 +101,57 @@ class Connected(Screen):
 
 
 class ChatPage(Screen):
-    def flask_app(self):
+    def reload_messages(self):
         app = App.get_running_app()
-        app_flask = Flask(__name__)        
-        @app_flask.route('/webhooks/topic/basicmessages/', methods=['POST'])
-        def webhook():
-            data = request.get_json()
-            new_message = data["content"]
-            self.ids.messages_label.text += app.contact+": "+new_message+"\n"
-            return "OK"
-        # connection_id = app.contact_connection_id
-        # r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/endpoints").text.replace("'", '"')
-        # r_json = json.loads(r)
-        # print(r_json)
-        # their_port = int(r_json["their_endpoint"].split(":")[2].replace("/",""))        
-        # print(their_port)
-        # print(app.third_port)
-        app_flask.run(host='localhost', port=app.third_port)
+        connection_id = app.contact_connection_id
+        path = app.username+"/"+connection_id+".dat"
+        if not os.path.isfile(path):
+            f = open(path, "w+")
+        f = open(path, "r")
+        Messages = f.readlines()
+        while True:     
+            time.sleep(1)
+            f = open(app.username+"/"+connection_id+".dat", "r")
+            Messages = f.readlines()
+            messages_to_print = ""
+            for message in Messages:
+                message = message.replace("'",'"')
+                message = json.loads(message)
+                new_message = ""
+                content = message["content"]
+                content = content.replace("u2019","'").replace("u0022",'"')
+                state = message["state"]
+                if state == "sent":
+                    new_message = app.username+" : "+content+"\n"
+                else:
+                    new_message = app.contact+" : "+content+"\n"
+                messages_to_print += new_message                    
+            
+            if messages_to_print != self.ids.messages_label.text:
+                print(messages_to_print)
+                self.ids.messages_label.text = messages_to_print
+
+            
     
     def on_enter(self, **kwargs):
         app = App.get_running_app()
         self.ids.contact_label.text = "Message with "+str(app.contact)
-        thread = threading.Thread(target=self.flask_app)
+        thread = threading.Thread(target=self.reload_messages)
         thread.start()
         
     def send(self, message):
         app = App.get_running_app()
         connection_id = app.contact_connection_id
         print("message", message, " will be sent")
-        self.ids.messages_label.text += app.username+": "+message+"\n"
+        self.ids.messages_label.text += app.username+" : "+message+"\n"
         url = "http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/send-message"
         print(url)
+        message = message.replace("'","u2019").replace("'","u0022")
         response = requests.post(url, json = {"content": message})
+        message_content = {'connection_id': connection_id, 'content': message, 'state': 'sent'}
         print(response.text)
+        with open(app.username+"/"+connection_id+".dat", "a") as output:
+            output.write(str(message_content)+"\n")
         self.ids['message'].text = ""
     
     def do_account(self):
