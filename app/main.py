@@ -120,6 +120,7 @@ class Connected(Screen):
     def disconnect(self):
         global proc
         app = App.get_running_app()
+        app.Registered = False
         loop = asyncio.get_event_loop()
         loop.run_until_complete(close_wallet(app.login))
         self.manager.transition = SlideTransition(direction="right")
@@ -351,6 +352,8 @@ class SignUp(Screen):
             self.ids.success_label.text = "User "+loginText+" already exists. Try again."
         else:
             app.login = wallet_handle
+            json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
+            requests.post("http://localhost:9000/register", json=json_register)
             self.manager.transition = SlideTransition(direction="left")
             self.manager.current = 'login'
             self.manager.get_screen('login').fillForm(loginText, passwordText)
