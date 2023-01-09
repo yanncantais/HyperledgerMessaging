@@ -179,7 +179,12 @@ class Home(Screen):
     
 
 class Invitations(Screen):
-    def on_enter(self): 
+    def on_enter(self):
+        counter = 1
+        for widget in self.ids.invitation_layout.walk():
+            if counter > 3:
+                self.ids.invitation_layout.remove_widget(widget)
+            counter+=1
         app = App.get_running_app()
         Invitations = []
         r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
@@ -187,8 +192,20 @@ class Invitations(Screen):
         r_json = r_json["results"]
         for item in r_json:
             if item["rfc23_state"] == "request-received":
-                Invitations.append([item["their_label"], item["connection_id"]])
-        print(Invitations)
+                Invitations.append(("Click to accept "+item["their_label"], "http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+item["connection_id"]+"/accept-request"))
+        print(Invitations)        
+        for item in Invitations:
+            text, url = item
+            button = Button(text=text, on_press=lambda btn: self.button_pressed(item), size_hint=(1, 0.3))
+            self.ids.invitation_layout.add_widget(button)
+
+    def button_pressed(self, item):
+        # This function will be called when the button is pressed
+        text, url = item
+        response = requests.post(url)
+        print(response.text)
+        
+
         
     def profile(self):
         
