@@ -59,9 +59,11 @@ class Connected(Screen):
         --debug-connections \
         --public-invites \
         --auto-provision \
+        --webhook-url http://localhost:10000/webhooks
         --wallet-type indy \
         --wallet-name """+user+"""-wallet \
         --wallet-key """+pwd
+        
         cmd_list = []
         for m in cmd.split(" "):
             cmd_list.append(m)
@@ -86,6 +88,10 @@ class Connected(Screen):
     def see_invitations(self):
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'invitations'
+        
+    def send_messages(self):
+        self.manager.transition = SlideTransition(direction="left")
+        self.manager.current = 'send_messages'
     
     def contact(self, contact):
         app = App.get_running_app()
@@ -205,7 +211,42 @@ class Invitations(Screen):
         response = requests.post(url)
         print(response.text)
         
+        
+    def profile(self):
+        
+        self.manager.transition = SlideTransition(direction="right")
+        self.manager.current = 'connected'
+        
+        
+class SendMessages(Screen):
+    def on_enter(self):
+        counter = 1
+        for widget in self.ids.send_messages_layout.walk():
+            if counter > 3:
+                self.ids.send_messages_layout.remove_widget(widget)
+            counter+=1
+        app = App.get_running_app()
+        
+        Contacts = []
+        r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
+        r_json = json.loads(r)
+        r_json = r_json["results"]
+        for item in r_json:
+            if item["rfc23_state"] == "completed":
+                Contacts.append(("Talk to "+item["their_label"], "http://0.0.0.0:"+str(app.second_port)+"/connections/"+item["connection_id"]+"/send-message"))
+        print(Contacts)
+    
+        for item in Contacts:
+            text, url = item
+            button = Button(text=text, on_press=lambda btn: self.button_pressed(item), size_hint=(1, 0.3))
+            self.ids.send_messages_layout.add_widget(button)
 
+    def button_pressed(self, item):
+        # This function will be called when the button is pressed
+        text, url = item
+        response = requests.post(url, json = {"content": "test"})
+        print(response.text)
+        
         
     def profile(self):
         
@@ -311,6 +352,7 @@ class LoginApp(App):
     AgentCreated = False
     first_port = 8000
     second_port = 11000
+    connection_id = StringProperty(None)
     
     def build(self):    
         manager = ScreenManager()
@@ -321,6 +363,7 @@ class LoginApp(App):
         manager.add_widget(ChatPage(name='chat_page'))     
         manager.add_widget(Invite(name='invite'))  
         manager.add_widget(Invitations(name='invitations'))  
+        manager.add_widget(SendMessages(name='send_messages'))  
         return manager
 
 
