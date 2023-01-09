@@ -3,15 +3,13 @@ import sys
 
 
 
-for i in range(1, len(sys.argv)):
-    if i == 1:
-        user = sys.argv[1]
-    elif i == 2:
-        pwd = sys.argv[2]
-    elif i == 3:
-        first_port = int(sys.argv[3])
+
+user = sys.argv[1]
+pwd = sys.argv[2]
+first_port = int(sys.argv[3])
 
 second_port = first_port + 3000
+third_port = second_port + 3000
 seed = user.ljust(32, '0')
 cmd = """aca-py start \
 --label """+user+""" \
@@ -25,7 +23,7 @@ cmd = """aca-py start \
 --debug-connections \
 --public-invites \
 --auto-provision \
---webhook-url http://localhost:10000/webhooks \
+--webhook-url http://localhost:"""+str(third_port)+"""/webhooks \
 --wallet-type indy \
 --wallet-name """+user+"""-wallet \
 --wallet-key """+pwd

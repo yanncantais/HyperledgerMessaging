@@ -2,6 +2,7 @@ import cv2
 import requests
 import json
 import qrcode
+import subprocess
 
 def create_qr(port, user):
     r = requests.post("http://localhost:11000/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
@@ -48,15 +49,16 @@ for item in r_json:
 
 
 
-second_port = 11000
-Invitations = []
-r = requests.get("http://0.0.0.0:"+str(second_port)+"/ce6ebe5e-f668-48b2-ad49-ac73f701de3f/endpoints").text
-print(r)
+# second_port = 11000
+# Invitations = []
 
+# print(port)
 
+# their_port = 11000
+# cmd_list = ["python", "./webhook.py", str(their_port), ">", "file.txt"]
+# proc = subprocess.Popen(cmd_list) 
 
-
-# second_port = 11001
+# # second_port = 11001
 
 # invitation = invitation.replace("'",'"')
 # invitation = json.loads(invitation)

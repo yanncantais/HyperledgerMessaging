@@ -1,4 +1,9 @@
 from flask import Flask, request
+import sys
+
+
+port = sys.argv[1]
+
 
 app_flask = Flask(__name__)
 
@@ -10,4 +15,4 @@ def webhook():
     return "OK"
 
 if __name__ == '__main__':
-    app_flask.run(host='localhost', port=10000)
+    app_flask.run(host='localhost', port=port)

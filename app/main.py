@@ -18,6 +18,7 @@ import signal
 import cv2
 import time
 from flask import Flask, request
+import threading
 
 async def close_wallet(wallet_handle):
     await wallet.close_wallet(wallet_handle)
@@ -35,43 +36,9 @@ def allocated_port(first_port):
     return port
 
 
-proc = None
 
-class Connected(Screen):    
-        
-    # def create_agent(self):
-    #     global proc
-    #     app = App.get_running_app()
-    #     user = app.username
-    #     pwd = app.password
-    #     first_port = allocated_port(app.first_port)
-    #     app.first_port = first_port
-    #     second_port = allocated_port(app.second_port)
-    #     app.second_port = second_port
-    #     seed = user.ljust(32, '0')
-    #     cmd = """aca-py start \
-    #     --label """+user+""" \
-    #     -it http 0.0.0.0 """+str(first_port)+""" \
-    #     -ot http \
-    #     --admin 0.0.0.0 """+str(second_port)+""" \
-    #     --admin-insecure-mode \
-    #     --genesis-url http://localhost:9000/genesis \
-    #     --seed """+seed+""" \
-    #     --endpoint http://localhost:"""+str(first_port)+"""/ \
-    #     --debug-connections \
-    #     --public-invites \
-    #     --auto-provision \
-    #     --webhook-url http://localhost:10000/webhooks
-    #     --wallet-type indy \
-    #     --wallet-name """+user+"""-wallet \
-    #     --wallet-key """+pwd
-        
-        # cmd_list = []
-        # for m in cmd.split(" "):
-        #     cmd_list.append(m)
-        # while '' in cmd_list:
-        #     cmd_list.remove('')
-        # proc = subprocess.Popen(cmd_list)  
+class Connected(Screen):           
+
         
         
     def on_enter(self):
@@ -83,9 +50,7 @@ class Connected(Screen):
             print(r.status_code, r.reason)
             print(r.text[:300] + '...')
             app.Registered = True
-        # if not app.AgentCreated:
-        #     self.create_agent()
-        #     app.AgentCreated = True
+
         
     def see_invitations(self):
         self.manager.transition = SlideTransition(direction="left")
@@ -110,16 +75,10 @@ class Connected(Screen):
         print(connection_id)
         r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+connection_id+"/accept-invitation")
         print(r.text)
-        # self.manager.get_screen('chat_page').load()
-        # self.manager.transition = SlideTransition(direction="left")
-        # self.manager.current = 'chat_page'
-        print(contact)
-        print(app.login)
     def invite(self):
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'invite'
     def disconnect(self):
-        global proc
         app = App.get_running_app()
         app.Registered = False
         loop = asyncio.get_event_loop()
@@ -128,10 +87,7 @@ class Connected(Screen):
         self.manager.current = 'login'
         self.manager.get_screen('login').resetForm()
         self.manager.get_screen('sign_up').resetForm()
-        # print(proc)
-        # if proc is not None:
-        #     os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
-            # proc.terminate()
+
 
 
 async def login(me, key):
@@ -164,26 +120,41 @@ async def sign(me, key):
 
 
 class ChatPage(Screen):
-    def on_enter(self, **kwargs):
+    def flask_app(self):
+        app = App.get_running_app()
         app_flask = Flask(__name__)        
         @app_flask.route('/webhooks/topic/basicmessages/', methods=['POST'])
         def webhook():
             # Process the webhook request
             data = request.get_json()
-            print(data)
+            new_message = data["content"]
+            self.ids.messages_label.text += app.contact+": "+new_message+"\n"
             return "OK"
+        # connection_id = app.contact_connection_id
+        # r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/endpoints").text.replace("'", '"')
+        # r_json = json.loads(r)
+        # print(r_json)
+        # their_port = int(r_json["their_endpoint"].split(":")[2].replace("/",""))        
+        # print(their_port)
+        # print(app.third_port)
+        app_flask.run(host='localhost', port=app.third_port)
+    
+    def on_enter(self, **kwargs):
         app = App.get_running_app()
         self.ids.contact_label.text = "Message with "+str(app.contact)
-        app_flask.run(host='localhost', port=10000)
+        thread = threading.Thread(target=self.flask_app)
+        thread.start()
         
         
     def send(self, message):
         app = App.get_running_app()
         connection_id = app.contact_connection_id
         print("message", message, " will be sent")
+        self.ids.messages_label.text += app.username+": "+message+"\n"
         url = "http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/send-message"
         response = requests.post(url, json = {"content": message})
         print(response.text)
+        self.ids['message'].text = ""
         
 
     def do_account(self):
@@ -223,7 +194,6 @@ class Invitations(Screen):
             self.ids.invitation_layout.add_widget(button)
 
     def button_pressed(self, item):
-        # This function will be called when the button is pressed
         text, url = item
         response = requests.post(url)
         print(response.text)
@@ -253,7 +223,6 @@ class SendMessages(Screen):
         for item in r_json:
             if item["rfc23_state"] == "completed":
                 Contacts.append((item["their_label"], item["connection_id"]))
-                # Contacts.append(("Talk to "+item["their_label"], "http://0.0.0.0:"+str(app.second_port)+"/connections/"+item["connection_id"]+"/send-message"))
         print(Contacts)
     
         for item in Contacts:
@@ -261,21 +230,14 @@ class SendMessages(Screen):
             button = Button(text=text, on_press=lambda btn: self.button_pressed(item), size_hint=(1, 0.3))
             self.ids.send_messages_layout.add_widget(button)
 
-    def button_pressed(self, item):
-        # This function will be called when the button is pressed
-        
-        
+    def button_pressed(self, item):       
         ctc, ctc_id = item
         app = App.get_running_app()
         app.contact = ctc
         app.contact_connection_id = ctc_id
         self.manager.transition = SlideTransition(direction="left")
         self.manager.current = 'chat_page'
-        
-        
-        
-        
-        
+    
     def profile(self):
         
         self.manager.transition = SlideTransition(direction="right")
@@ -320,16 +282,14 @@ class Invite(Screen):
         self.manager.current = 'connected'
 
 
-# class CreateAgent(Screen):
-    
-
-
+ 
 class Login(Screen):
     
     def do_login(self, loginText, passwordText, portText):
         app = App.get_running_app()
         app.first_port = portText
         app.second_port = int(portText) + 3000
+        app.third_port = int(app.second_port) + 3000
         if loginText == "" or passwordText == "":
             self.ids.success_label.text = "Please, enter your login and password."
             return ""
@@ -421,11 +381,6 @@ class LoginApp(App):
         return manager
 
 
-# def handler(signum, frame):  
-    
-#     exit(1)
- 
-# signal.signal(signal.SIGINT, handler)
 
 if __name__ == '__main__':
     LoginApp().run()
