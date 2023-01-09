@@ -27,7 +27,10 @@ def read_qr(user):
     return val.replace("'",'"')
 
 
-invitation = read_qr("tanguy")
+invitation = read_qr("yann")
+
+
+
 
 # p = json.loads(read_qr("tanguy"))
 

@@ -16,6 +16,7 @@ import os
 import subprocess
 import signal
 import cv2
+import time
 
 async def close_wallet(wallet_handle):
     await wallet.close_wallet(wallet_handle)
@@ -37,39 +38,39 @@ proc = None
 
 class Connected(Screen):    
         
-    def create_agent(self):
-        global proc
-        app = App.get_running_app()
-        user = app.username
-        pwd = app.password
-        first_port = allocated_port(app.first_port)
-        app.first_port = first_port
-        second_port = allocated_port(app.second_port)
-        app.second_port = second_port
-        seed = user.ljust(32, '0')
-        cmd = """aca-py start \
-        --label """+user+""" \
-        -it http 0.0.0.0 """+str(first_port)+""" \
-        -ot http \
-        --admin 0.0.0.0 """+str(second_port)+""" \
-        --admin-insecure-mode \
-        --genesis-url http://localhost:9000/genesis \
-        --seed """+seed+""" \
-        --endpoint http://localhost:"""+str(first_port)+"""/ \
-        --debug-connections \
-        --public-invites \
-        --auto-provision \
-        --webhook-url http://localhost:10000/webhooks
-        --wallet-type indy \
-        --wallet-name """+user+"""-wallet \
-        --wallet-key """+pwd
+    # def create_agent(self):
+    #     global proc
+    #     app = App.get_running_app()
+    #     user = app.username
+    #     pwd = app.password
+    #     first_port = allocated_port(app.first_port)
+    #     app.first_port = first_port
+    #     second_port = allocated_port(app.second_port)
+    #     app.second_port = second_port
+    #     seed = user.ljust(32, '0')
+    #     cmd = """aca-py start \
+    #     --label """+user+""" \
+    #     -it http 0.0.0.0 """+str(first_port)+""" \
+    #     -ot http \
+    #     --admin 0.0.0.0 """+str(second_port)+""" \
+    #     --admin-insecure-mode \
+    #     --genesis-url http://localhost:9000/genesis \
+    #     --seed """+seed+""" \
+    #     --endpoint http://localhost:"""+str(first_port)+"""/ \
+    #     --debug-connections \
+    #     --public-invites \
+    #     --auto-provision \
+    #     --webhook-url http://localhost:10000/webhooks
+    #     --wallet-type indy \
+    #     --wallet-name """+user+"""-wallet \
+    #     --wallet-key """+pwd
         
-        cmd_list = []
-        for m in cmd.split(" "):
-            cmd_list.append(m)
-        while '' in cmd_list:
-            cmd_list.remove('')
-        proc = subprocess.Popen(cmd_list)  
+        # cmd_list = []
+        # for m in cmd.split(" "):
+        #     cmd_list.append(m)
+        # while '' in cmd_list:
+        #     cmd_list.remove('')
+        # proc = subprocess.Popen(cmd_list)  
         
         
     def on_enter(self):
@@ -81,9 +82,9 @@ class Connected(Screen):
             print(r.status_code, r.reason)
             print(r.text[:300] + '...')
             app.Registered = True
-        if not app.AgentCreated:
-            self.create_agent()
-            app.AgentCreated = True
+        # if not app.AgentCreated:
+        #     self.create_agent()
+        #     app.AgentCreated = True
         
     def see_invitations(self):
         self.manager.transition = SlideTransition(direction="left")
@@ -259,23 +260,32 @@ class Invite(Screen):
             if isinstance(widget, Image):
                 self.ids.qr_layout.remove_widget(widget)                
         app = App.get_running_app()            
-        print('creating invitation link')   
-        r = requests.post("http://localhost:"+str(app.second_port)+"/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
-                           "handshake_protocols": [
-                           "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-                            ],
-                            "label": app.username,                  
-                            })
-        json_response = json.loads(r.text)
-        json_invite = json_response["invitation"]       
-        
-    
-        img = qrcode.make(json_invite)
-        # Saving as an image file
-        img.save('QRCode'+app.username+'.png')
-        wimg = Image(source='QRCode'+app.username+'.png')
+        GoodQR = False
+        while not GoodQR:        
+            print('creating invitation link')   
+            r = requests.post("http://localhost:"+str(app.second_port)+"/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
+                               "handshake_protocols": [
+                               "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
+                                ],
+                                "label": app.username,                  
+                                })
+            json_response = json.loads(r.text)
+            json_invite = json_response["invitation"] 
+            img = qrcode.make(json_invite)
+            # Saving as an image file
+            img.save('QRCode'+app.username+'.png')
+            wimg = Image(source='QRCode'+app.username+'.png')            
+            time.sleep(2)            
+            img=cv2.imread("QRCode"+app.username+".png")
+            det=cv2.QRCodeDetector()
+            invitation, pts, st_code=det.detectAndDecode(img)
+            if len(invitation) > 10:
+                GoodQR = True
+            print(invitation)
         self.ids.qr_layout.remove_widget(self.ids.loading_label)
         self.ids.qr_layout.add_widget(wimg)
+        
+        
                      
     def profile(self):
         
@@ -289,7 +299,10 @@ class Invite(Screen):
 
 class Login(Screen):
     
-    def do_login(self, loginText, passwordText):
+    def do_login(self, loginText, passwordText, portText):
+        app = App.get_running_app()
+        app.first_port = portText
+        app.second_port = int(portText) + 3000
         if loginText == "" or passwordText == "":
             self.ids.success_label.text = "Please, enter your login and password."
             return ""
@@ -318,6 +331,11 @@ class Login(Screen):
         self.ids['password'].text = ""
         self.ids.success_label.text = ""
         
+    def fillForm(self, login, password):
+        self.ids['login'].text = login
+        self.ids['password'].text = password
+        self.ids.success_label.text = ""
+        
         
 class SignUp(Screen):
     
@@ -334,7 +352,12 @@ class SignUp(Screen):
         else:
             app.login = wallet_handle
             self.manager.transition = SlideTransition(direction="left")
-            self.manager.current = 'connected'
+            self.manager.current = 'login'
+            self.manager.get_screen('login').fillForm(loginText, passwordText)
+
+            
+        
+            
     def do_home(self):
         self.manager.transition = SlideTransition(direction="right")
         self.manager.current = 'home'
@@ -350,8 +373,8 @@ class LoginApp(App):
     contact = StringProperty(None)
     Registered = False
     AgentCreated = False
-    first_port = 8000
-    second_port = 11000
+    first_port = 20000
+    second_port = 23000
     connection_id = StringProperty(None)
     
     def build(self):    
