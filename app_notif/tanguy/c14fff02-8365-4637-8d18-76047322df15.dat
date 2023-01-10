@@ -1,0 +1,5 @@
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': '24ae4fed-9a3d-4725-9df9-743efefa17c5', 'content': 'salut', 'state': 'received', 'sent_time': '2023-01-10T13:49:15.837258Z'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'salut', 'state': 'sent'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': 'bbf751d4-59e8-4fb1-85d8-522a0a5e0822', 'content': 'test', 'state': 'received', 'sent_time': '2023-01-10T13:56:33.727244Z'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'salut', 'state': 'sent'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': '3522ca4e-1f2c-4fda-8895-e01b3f9164c6', 'content': 'test', 'state': 'received', 'sent_time': '2023-01-10T19:16:25.653351Z'}

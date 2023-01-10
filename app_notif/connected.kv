@@ -1,0 +1,99 @@
+<Connected>:
+    BoxLayout:
+        orientation: 'vertical'
+		padding: [10,50,10,50]
+        spacing: 30
+		BoxLayout:
+			orientation: 'horizontal'
+			padding: [10,10,10,10]
+			spacing: 10
+			Button:
+				text: 'Send invitation'
+				font_size: 20
+				size_hint: 0.3, 1
+				on_press: root.invite()
+			Button:
+				text: 'See invitations'
+				font_size: 20
+				size_hint: 0.3, 1
+				on_press: root.see_invitations()
+			Button:
+				text: 'Send messages'
+				font_size: 20
+				size_hint: 0.3, 1
+				on_press: root.send_messages()
+		Label:
+			id: welcome_label
+            text: 'Welcome'
+            font_size: 32
+        Label:
+            text: "Enter the QR Code of the contact :"
+            font_size: 25
+			
+		TextInput:
+			id: contact
+			multiline: False
+			size_hint: (1, .5)
+		
+		Button:
+            text: "Connect"
+            font_size: 24
+            on_press: root.contact(contact.text)
+
+		
+        Button:
+            text: "Sign out"
+            font_size: 20
+            on_press: root.disconnect()
+			
+<Invite>:
+    BoxLayout:
+        orientation: 'vertical'
+		padding: [10,50,10,50]
+        spacing: 30
+		id: qr_layout
+		Button:
+			text: 'Back to profile'
+			font_size: 20
+			size_hint: 0.3, 0.2
+			on_press: root.profile()			
+		Label:
+			id: loading_label
+			text: 'Loading...'
+			font_size: 32
+
+<Invitations>:
+    BoxLayout:
+        orientation: 'vertical'
+		halign: 'center'
+		padding: [30,50,30,50]
+        spacing: 15
+		id: invitation_layout
+		Button:
+			text: 'Back to profile'
+			font_size: 20
+			size_hint: 0.3, 0.2
+			on_press: root.profile()			
+		Label:
+			id: invitations_label
+			text: 'Invitations'
+			font_size: 32
+			
+			
+<SendMessages>:
+    BoxLayout:
+        orientation: 'vertical'
+		halign: 'center'
+		padding: [30,50,30,50]
+        spacing: 15
+		id: send_messages_layout
+		Button:
+			text: 'Back to profile'
+			font_size: 20
+			size_hint: 0.3, 0.2
+			on_press: root.profile()			
+		Label:
+			id: send_messages_label
+			text: 'My Contacts'
+			font_size: 32
+		

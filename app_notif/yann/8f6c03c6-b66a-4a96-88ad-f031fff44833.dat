@@ -1,0 +1,6 @@
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'salut', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': '7f46c9a5-baac-46e7-af0f-3ad4008f29e8', 'content': 'salut', 'state': 'received', 'sent_time': '2023-01-10T13:49:21.473096Z'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'hey', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': 'b545e736-c5fe-4ae8-80ca-a4a1814fb305', 'content': 'salut', 'state': 'received', 'sent_time': '2023-01-10T19:06:27.038088Z'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
