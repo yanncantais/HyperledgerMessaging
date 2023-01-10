@@ -111,7 +111,6 @@ class Connected(Screen):
         for connection in connections:
             if connection[-4:] != ".dat":
                 connections.remove(connection)
-        # Connections = {}
         print("contacts", app.Contacts)
         for path in connections:
             print(path)
@@ -119,12 +118,9 @@ class Connected(Screen):
             f = open(app.username+"/"+path, "r")
             Messages = f.readlines()  
             f.close()
-            # messages_to_print = ""
             for message in Messages:
                 message = message.replace("'",'"')
                 message = json.loads(message)
-                # new_message = ""
-                # content = message["content"]
                 if "message_id" in message:
                     message_id = message["message_id"]
                     m = open(app.username+"/"+path.replace(".dat",".rd"), "r")
@@ -136,24 +132,15 @@ class Connected(Screen):
                         else:
                             if message_id not in app.NewMessages[connection_id]:
                                 app.NewMessages[connection_id].append([message_id])               
-                # content = content.replace("u2019","'").replace("u0022",'"')
-                # state = message["state"]
-                # if state == "sent":
-                #     new_message = app.username+" : "+content+"\n"
-                # else:
-                #     new_message = app.Contacts[connection_id]+" : "+content+"\n"
-                # messages_to_print += new_message
-            # Connections[connection_id] = messages_to_print
+
         
         
     def reload_messages(self):
         app = App.get_running_app()
-        # Connections = self.read_messages()
         while app.Logged:
             app.Reloading = True
             print("reloading loop running")
             time.sleep(2) 
-            #reloading connections (contacts)
             r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
             r_json = json.loads(r)
             r_json = r_json["results"]
@@ -161,16 +148,6 @@ class Connected(Screen):
                 if item["rfc23_state"] == "completed":
                     app.Contacts[item["connection_id"]] = item["their_label"]
             self.read_messages()
-            #reloading messages          
-            # NewConnections = self.read_messages()
-            # for connection_id in NewConnections:
-            #     if Connections[connection_id] != NewConnections[connection_id]:
-            #         if connection_id not in app.NotifMessages:
-            #             app.NotifMessages[connection_id] = 1
-            #         else:
-            #             app.NotifMessages[connection_id] += 1
-            #         print(app.NotifMessages, "nouveau(x) messages de", app.Contacts[connection_id])
-            #         Connections[connection_id] = NewConnections[connection_id]
             for connection in app.NewMessages:
                 if len(app.NewMessages[connection]) > 0:
                        print(len(app.NewMessages[connection]), "nouveaux messages de", app.Contacts[connection])
