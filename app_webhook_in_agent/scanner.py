@@ -13,7 +13,7 @@ class Scanner(Screen):
 
 class QrCodeApp(App):
     def build(self):
-        manager = ScreenManager
+        manager = ScreenManager()
         manager.add_widget(Scanner(name='scanner'))
         return manager
 

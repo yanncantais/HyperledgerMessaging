@@ -1,7 +1,0 @@
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'content': 'salut !', 'state': 'sent'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'message_id': 'a344498d-3316-4dc0-9d1b-b364ecf9887f', 'content': 'salut tanguy ! ça va ?', 'state': 'received', 'sent_time': '2023-01-09T18:05:54.165373Z'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'content': 'très bien et toi ?', 'state': 'sent'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'message_id': '950ba609-8d57-4719-a727-b228d2b4514f', 'content': 'oui ! maintenant je mu2019absente un peu, a+', 'state': 'received', 'sent_time': '2023-01-09T18:06:24.138106Z'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'content': 'ça marche ', 'state': 'sent'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'content': 'maintenant, je tu2019envoie un message pendant que tu nu2019es pas là', 'state': 'sent'}
-{'connection_id': '2bfb6a62-6c10-4de2-a534-6ae3b2d3f180', 'message_id': '26cfd554-df1d-4e83-8d10-4debf7dcde91', 'content': 'je lu2019ai bien reçu !', 'state': 'received', 'sent_time': '2023-01-09T18:08:28.758985Z'}

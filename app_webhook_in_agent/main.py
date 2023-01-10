@@ -109,7 +109,7 @@ class ChatPage(Screen):
             f = open(path, "w+")
         f = open(path, "r")
         Messages = f.readlines()
-        while True:     
+        while connection_id == app.contact_connection_id:     
             time.sleep(1)
             f = open(app.username+"/"+connection_id+".dat", "r")
             Messages = f.readlines()
@@ -142,7 +142,7 @@ class ChatPage(Screen):
     def send(self, message):
         app = App.get_running_app()
         connection_id = app.contact_connection_id
-        print("message", message, " will be sent")
+        print("message", message, "will be sent")
         self.ids.messages_label.text += app.username+" : "+message+"\n"
         url = "http://0.0.0.0:"+str(app.second_port)+"/connections/"+connection_id+"/send-message"
         print(url)
@@ -155,8 +155,9 @@ class ChatPage(Screen):
         self.ids['message'].text = ""
     
     def do_account(self):
+        self.ids.messages_label.text = ""
         self.manager.transition = SlideTransition(direction="right")
-        self.manager.current = 'connected'
+        self.manager.current = 'send_messages'
 
 
 class Home(Screen):
@@ -225,11 +226,11 @@ class SendMessages(Screen):
     
         for item in Contacts:
             text, url = item
-            button = Button(text=text, on_press=lambda btn: self.button_pressed(item), size_hint=(1, 0.3))
+            print(item)
+            button = Button(text=text, on_press=lambda btn, item=item: self.button_pressed(*item), size_hint=(1, 0.3))
             self.ids.send_messages_layout.add_widget(button)
 
-    def button_pressed(self, item):       
-        ctc, ctc_id = item
+    def button_pressed(self, ctc, ctc_id):
         app = App.get_running_app()
         app.contact = ctc
         app.contact_connection_id = ctc_id
