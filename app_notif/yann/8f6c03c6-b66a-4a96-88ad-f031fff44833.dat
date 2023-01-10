@@ -4,3 +4,12 @@
 {'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
 {'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': 'b545e736-c5fe-4ae8-80ca-a4a1814fb305', 'content': 'salut', 'state': 'received', 'sent_time': '2023-01-10T19:06:27.038088Z'}
 {'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'salut !', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': 'e288d654-e89e-449b-a718-28d8dcb515e1', 'content': 'salut gros', 'state': 'received', 'sent_time': '2023-01-10T20:49:18.980752Z'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': '164497d2-300b-47e2-93fc-4df48a02ee12', 'content': 'ju2019espère tu vas bien', 'state': 'received', 'sent_time': '2023-01-10T20:49:24.596435Z'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'message_id': '8b869e0c-bf4e-495d-bd7c-8d3ff1e3eabd', 'content': 'ouaiss', 'state': 'received', 'sent_time': '2023-01-10T20:58:48.623056Z'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'test', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'help', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'ohhh', 'state': 'sent'}
+{'connection_id': '8f6c03c6-b66a-4a96-88ad-f031fff44833', 'content': 'ça marche !', 'state': 'sent'}

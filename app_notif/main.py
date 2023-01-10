@@ -111,9 +111,7 @@ class Connected(Screen):
         for connection in connections:
             if connection[-4:] != ".dat":
                 connections.remove(connection)
-        print("contacts", app.Contacts)
         for path in connections:
-            print(path)
             connection_id = path.split(".")[0]
             f = open(app.username+"/"+path, "r")
             Messages = f.readlines()  
@@ -127,11 +125,12 @@ class Connected(Screen):
                     MessagesRead = m.read().split("\n")
                     m.close()
                     if message_id not in MessagesRead:
+                        
                         if connection_id not in app.NewMessages:
                             app.NewMessages[connection_id] = [message_id]
                         else:
                             if message_id not in app.NewMessages[connection_id]:
-                                app.NewMessages[connection_id].append([message_id])               
+                                app.NewMessages[connection_id].append(message_id)               
 
         
         
@@ -139,7 +138,7 @@ class Connected(Screen):
         app = App.get_running_app()
         while app.Logged:
             app.Reloading = True
-            print("reloading loop running")
+            print("reloading loop running...")
             time.sleep(2) 
             r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
             r_json = json.loads(r)
@@ -148,11 +147,68 @@ class Connected(Screen):
                 if item["rfc23_state"] == "completed":
                     app.Contacts[item["connection_id"]] = item["their_label"]
             self.read_messages()
+            print(app.Contacts)
+            new_messages = 0
             for connection in app.NewMessages:
                 if len(app.NewMessages[connection]) > 0:
-                       print(len(app.NewMessages[connection]), "nouveaux messages de", app.Contacts[connection])
+                    print(len(app.NewMessages[connection]), "nouveaux messages de", app.Contacts[connection])
+                    screen_messages = self.manager.get_screen('send_messages')
+                    for button in screen_messages.ids.send_messages_layout.children:
+                        if isinstance(button, Button):
+                            if button.name != "profile":
+                                if button.connection_id == connection:                                
+                                    button.text = app.Contacts[connection] + " ("+str(len(app.NewMessages[connection]))+")"
+                    new_messages+=len(app.NewMessages[connection])
+            if new_messages != 0:
+                self.ids.messages_button.text = "Messages ("+str(new_messages)+")"
+            else:
+                self.ids.messages_button.text = "Messages"
         app.Reloading = False
                 
+        
+class SendMessages(Screen):
+    def on_enter(self):
+        counter = 1
+        for widget in self.ids.send_messages_layout.walk():
+            if counter > 3:
+                self.ids.send_messages_layout.remove_widget(widget)
+            counter+=1
+        app = App.get_running_app()
+        
+        Contacts = []
+        r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
+        r_json = json.loads(r)
+        r_json = r_json["results"]
+        for item in r_json:
+            if item["rfc23_state"] == "completed":
+                Contacts.append((item["their_label"], item["connection_id"]))
+        print(Contacts)    
+        for item in Contacts:
+            contact, connection_id = item
+            if connection_id in app.NewMessages:
+                counter = len(app.NewMessages[connection_id])
+                if counter > 0:
+                    text = contact+" ("+str(counter)+")"
+                else:
+                    text = contact
+            else:
+                text = contact
+            button = Button(text=text, on_press=lambda btn, item=item: self.button_pressed(*item), size_hint=(1, 0.3), name="contact")
+            button.font_size = 20
+            button.connection_id = connection_id
+            self.ids.send_messages_layout.add_widget(button)
+
+    def button_pressed(self, contact, connection_id):
+        app = App.get_running_app()
+        app.contact = contact
+        app.contact_connection_id = connection_id
+        self.manager.transition = SlideTransition(direction="left")
+        self.manager.current = 'chat_page'
+    
+    def profile(self):
+        
+        self.manager.transition = SlideTransition(direction="right")
+        self.manager.current = 'connected'        
 
 
 
@@ -205,7 +261,7 @@ class ChatPage(Screen):
     
     def on_enter(self, **kwargs):
         app = App.get_running_app()
-        self.ids.contact_label.text = "Message with "+str(app.contact)
+        self.ids.contact_label.text = str(app.contact)
         thread = threading.Thread(target=self.reload_messages)
         thread.start()
         
@@ -276,41 +332,7 @@ class Invitations(Screen):
         self.manager.current = 'connected'
         
         
-class SendMessages(Screen):
-    def on_enter(self):
-        counter = 1
-        for widget in self.ids.send_messages_layout.walk():
-            if counter > 3:
-                self.ids.send_messages_layout.remove_widget(widget)
-            counter+=1
-        app = App.get_running_app()
-        
-        Contacts = []
-        r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
-        r_json = json.loads(r)
-        r_json = r_json["results"]
-        for item in r_json:
-            if item["rfc23_state"] == "completed":
-                Contacts.append((item["their_label"], item["connection_id"]))
-        print(Contacts)
-    
-        for item in Contacts:
-            text, url = item
-            print(item)
-            button = Button(text=text, on_press=lambda btn, item=item: self.button_pressed(*item), size_hint=(1, 0.3))
-            self.ids.send_messages_layout.add_widget(button)
 
-    def button_pressed(self, ctc, ctc_id):
-        app = App.get_running_app()
-        app.contact = ctc
-        app.contact_connection_id = ctc_id
-        self.manager.transition = SlideTransition(direction="left")
-        self.manager.current = 'chat_page'
-    
-    def profile(self):
-        
-        self.manager.transition = SlideTransition(direction="right")
-        self.manager.current = 'connected'
 
 class Invite(Screen):
     def on_enter(self):  

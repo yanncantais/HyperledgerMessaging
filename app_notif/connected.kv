@@ -18,7 +18,8 @@
 				size_hint: 0.3, 1
 				on_press: root.see_invitations()
 			Button:
-				text: 'Send messages'
+				id: messages_button
+				text: 'Messages'
 				font_size: 20
 				size_hint: 0.3, 1
 				on_press: root.send_messages()
@@ -88,6 +89,8 @@
         spacing: 15
 		id: send_messages_layout
 		Button:
+			id : profile
+			name : "profile"
 			text: 'Back to profile'
 			font_size: 20
 			size_hint: 0.3, 0.2
