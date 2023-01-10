@@ -12,3 +12,7 @@
 {'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': '3b3931d8-8e95-4909-8338-7d2a01fb8d37', 'content': 'help', 'state': 'received', 'sent_time': '2023-01-10T21:30:15.250819Z'}
 {'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': '47619dff-ff6e-4d8a-b679-2d4e76de8558', 'content': 'ohhh', 'state': 'received', 'sent_time': '2023-01-10T21:30:21.003748Z'}
 {'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'message_id': '9f55556a-3704-4b48-b198-2186f2290d63', 'content': 'ça marche !', 'state': 'received', 'sent_time': '2023-01-10T21:30:25.366667Z'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'salut ', 'state': 'sent'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'ça vvaaa', 'state': 'sent'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'looool', 'state': 'sent'}
+{'connection_id': 'c14fff02-8365-4637-8d18-76047322df15', 'content': 'test', 'state': 'sent'}

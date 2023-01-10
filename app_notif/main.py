@@ -143,9 +143,20 @@ class Connected(Screen):
             r = requests.get("http://0.0.0.0:"+str(app.second_port)+"/connections").text
             r_json = json.loads(r)
             r_json = r_json["results"]
+            counter_invitation = 0
             for item in r_json:
                 if item["rfc23_state"] == "completed":
                     app.Contacts[item["connection_id"]] = item["their_label"]
+                if item["rfc23_state"] == "request-received":
+                    counter_invitation += 1
+            if counter_invitation > 0:
+                self.ids.invitation_button.text = "Invitations ("+str(counter_invitation)+")"
+            else:
+                self.ids.invitation_button.text = "Invitations"
+
+
+                    
+                    
             self.read_messages()
             print(app.Contacts)
             new_messages = 0
