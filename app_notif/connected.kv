@@ -35,14 +35,15 @@
 		TextInput:
 			id: contact
 			multiline: False
-			size_hint: (1, .5)
-		
+			size_hint: (1, 0.7)
+		Label:
+			id: qr_connect_label
+            text: ""
+            font_size: 15	
 		Button:
             text: "Connect"
             font_size: 24
-            on_press: root.contact(contact.text)
-
-		
+            on_press: root.contact(contact.text)			
         Button:
             text: "Sign out"
             font_size: 20
@@ -86,15 +87,15 @@
     BoxLayout:
         orientation: 'vertical'
 		halign: 'center'
-		padding: [30,50,30,50]
-        spacing: 15
+		padding: [10,50,10,50]
+        spacing: 10
 		id: send_messages_layout
 		Button:
 			id : profile
 			name : "profile"
 			text: 'Back to profile'
 			font_size: 20
-			size_hint: 0.3, 0.2
+			size_hint: 0.3, 0.15
 			on_press: root.profile()			
 		Label:
 			id: send_messages_label

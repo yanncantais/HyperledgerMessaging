@@ -6,12 +6,33 @@ import os
 
 user = sys.argv[1]
 pwd = sys.argv[2]
-first_port = int(sys.argv[3])
 
+
+
+PortFound = False
+if not os.path.isfile("ports.conf"):
+    print("No ports.conf file found.")
+    exit(1)
+p = open("ports.conf", "r")
+AgentsPorts = p.read().split("\n") 
+p.close()
+for port_line in AgentsPorts:
+    if ":" in port_line:
+        port_line_separated = port_line.split(":")
+        agent = port_line_separated[0]
+        port = int(port_line_separated[1])
+        if agent == user:
+            first_port = port
+            PortFound = True
+            break
+if not PortFound:
+    print("Your agent was not found.")
+    exit(1)  
+    
 
 if not os.path.isdir(user):
     os.mkdir(user)
-    
+
 
 third_port = first_port + 6000
 

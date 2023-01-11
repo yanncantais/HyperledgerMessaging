@@ -75,18 +75,23 @@ class Connected(Screen):
     def contact(self, contact):
         app = App.get_running_app()
         app.contact = contact
-        img=cv2.imread("QRCode"+contact+".png")
-        det=cv2.QRCodeDetector()
-        invitation, pts, st_code=det.detectAndDecode(img)
-        invitation = invitation.replace("'",'"')
-        invitation = json.loads(invitation)
-        r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/out-of-band/receive-invitation", json = invitation)
-        print(r.text)  
-        response = json.loads(r.text)
-        connection_id = response["connection_id"]
-        print(connection_id)
-        r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+connection_id+"/accept-invitation")
-        print(r.text)
+        try:
+            img=cv2.imread("QRCode"+contact+".png")
+            det=cv2.QRCodeDetector()
+            invitation, pts, st_code=det.detectAndDecode(img)
+            invitation = invitation.replace("'",'"')
+            invitation = json.loads(invitation)
+            r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/out-of-band/receive-invitation", json = invitation)
+            print(r.text)  
+            response = json.loads(r.text)
+            connection_id = response["connection_id"]
+            print(connection_id)
+            r = requests.post("http://0.0.0.0:"+str(app.second_port)+"/didexchange/"+connection_id+"/accept-invitation")
+            print(r.text)
+            self.ids.qr_connect_label.text = "Invitation sent to "+contact
+        except:
+            self.ids.qr_connect_label.text = " An error occured during the sending of the invitation.\nCheck that your agent is online and the QR code is valid."
+         
         
     def invite(self):
         self.manager.transition = SlideTransition(direction="left")
@@ -119,18 +124,20 @@ class Connected(Screen):
             for message in Messages:
                 message = message.replace("'",'"')
                 message = json.loads(message)
+                message_id = message["message_id"]
                 if "message_id" in message:
-                    message_id = message["message_id"]
-                    m = open(app.username+"/"+path.replace(".dat",".rd"), "r")
-                    MessagesRead = m.read().split("\n")
-                    m.close()
-                    if message_id not in MessagesRead:
-                        
-                        if connection_id not in app.NewMessages:
-                            app.NewMessages[connection_id] = [message_id]
-                        else:
-                            if message_id not in app.NewMessages[connection_id]:
-                                app.NewMessages[connection_id].append(message_id)               
+                    if os.path.isfile(app.username+"/"+path.replace(".dat",".rd")):                        
+                        m = open(app.username+"/"+path.replace(".dat",".rd"), "r")
+                        MessagesRead = m.read().split("\n")
+                        m.close()
+                        if message_id not in MessagesRead:                        
+                            if connection_id not in app.NewMessages:
+                                app.NewMessages[connection_id] = [message_id]
+                            else:
+                                if message_id not in app.NewMessages[connection_id]:
+                                    app.NewMessages[connection_id].append(message_id)
+                    else:
+                        app.NewMessages[connection_id] = [message_id]
 
         
         
@@ -384,11 +391,37 @@ class Invite(Screen):
 
  
 class Login(Screen):
-    def do_login(self, loginText, passwordText, portText):
-        app = App.get_running_app()
-        app.first_port = portText
-        app.second_port = int(portText) + 3000
+    def do_login(self, loginText, passwordText):
+        PortFound = False
+        app = App.get_running_app()        
+        if not os.path.isfile("ports.conf"):
+            self.ids.success_label.text = "No ports.conf file found."
+            return ""
+        p = open("ports.conf", "r")
+        AgentsPorts = p.read().split("\n") 
+        p.close()
+        for port_line in AgentsPorts:
+            if ":" in port_line:
+                port_line_separated = port_line.split(":")
+                agent = port_line_separated[0]
+                port = int(port_line_separated[1])
+                if agent == loginText:
+                    app.first_port = port
+                    PortFound = True
+                    break
+        if not PortFound:
+            self.ids.success_label.text = "Your agent was not found."
+            return ""
+        
+        app.second_port = int(app.first_port) + 3000
         app.third_port = int(app.second_port) + 3000
+        
+        try:
+            requests.get("http://localhost:"+str(app.second_port))
+        except:
+            self.ids.success_label.text = "Your agent is not running. Please, start it."
+            return ""
+
         if loginText == "" or passwordText == "":
             self.ids.success_label.text = "Please, enter your login and password."
             return ""
@@ -424,9 +457,12 @@ class Login(Screen):
         
         
 class SignUp(Screen):
-    def do_sign(self, loginText, passwordText):
+    def do_sign(self, loginText, passwordText, passwordText2):
         app = App.get_running_app()
 
+        if passwordText != passwordText2:
+            self.ids.success_label.text = "The 2 passwords do not match. Try again."
+            return ""
         app.username = loginText
         app.password = passwordText
 
@@ -438,6 +474,27 @@ class SignUp(Screen):
             app.login = wallet_handle
             json_register = {'role': 'ENDORSER', 'alias': app.username, 'did':0, 'seed': app.username}
             requests.post("http://localhost:9000/register", json=json_register)
+            
+            Ports = []
+            if os.path.isfile("ports.conf"):
+                p = open("ports.conf", "r")
+                AgentsPorts = p.read().split("\n") 
+                p.close()
+                for agent in AgentsPorts:
+                    if ":" in agent:
+                        port_line = agent.split(":")
+                        Ports.append(int(port_line[1]))
+            allocated_port = 8000
+            
+            while allocated_port in Ports:
+                allocated_port+=1
+                
+                
+            with open("ports.conf", "a") as output:
+                output.write(app.username+":"+str(allocated_port)+"\n")          
+                
+                
+            
             loop = asyncio.get_event_loop()
             loop.run_until_complete(close_wallet(app.login))
             self.manager.transition = SlideTransition(direction="left")

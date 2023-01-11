@@ -46,25 +46,12 @@
                 font_size: 22
 				size_hint: 1, 3
 				
-		BoxLayout:
-            orientation: 'vertical'
-            Label:
-                text: 'Port'
-                halign: 'left'
-                font_size: 18
-                text_size: root.width-20, 20
-
-            TextInput:
-                id: port
-                multiline:False
-                font_size: 22
-				size_hint: 1, 3
 
         Button:
             text: 'Connection'
             font_size: 24
 
-            on_press: root.do_login(login.text, password.text, port.text)
+            on_press: root.do_login(login.text, password.text)
 			
 		Label:
 			id: success_label
@@ -116,12 +103,27 @@
                 password:True
                 font_size: 22
 				size_hint: 1, 3
+				
+		BoxLayout:
+            orientation: 'vertical'
+            Label:
+                text: 'Password'
+                halign: 'left'
+                font_size: 18
+                text_size: root.width-20, 20
+
+            TextInput:
+                id: password2
+                multiline:False
+                password:True
+                font_size: 22
+				size_hint: 1, 3
 
         Button:
             text: 'Submit'
             font_size: 24
 
-            on_press: root.do_sign(login.text, password.text)
+            on_press: root.do_sign(login.text, password.text, password2.text)
 			
 		Label:
 			id: success_label
