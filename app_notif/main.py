@@ -350,25 +350,36 @@ class Invitations(Screen):
         self.manager.current = 'connected'
         
         
+async def get_did(wallet_handle):
+    firstdid, firstverkey = await did.create_and_store_my_did(wallet_handle = wallet_handle, did_json = "{}")
+    return firstdid, firstverkey
 
-
-class Invite(Screen):
+class Invite(Screen):   
+    
+    
     def on_enter(self):  
         for widget in self.ids.qr_layout.walk():
             if isinstance(widget, Image):
                 self.ids.qr_layout.remove_widget(widget)                
-        app = App.get_running_app()            
+        app = App.get_running_app()        
+        loop = asyncio.get_event_loop()
+        MyDID, MyVerkey = loop.run_until_complete(get_did(app.login))
+        print("My DID: ",MyDID)
+        print("My verkey: ",MyVerkey)
         GoodQR = False
         while not GoodQR:        
             print('creating invitation link')   
             r = requests.post("http://localhost:"+str(app.second_port)+"/out-of-band/create-invitation", json={"@type": "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/out-of-band/1.0/invitation",
                                "handshake_protocols": [
                                "did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/didexchange/1.0"
-                                ],
-                                "label": app.username,                  
+                                ]                 
                                 })
             json_response = json.loads(r.text)
             json_invite = json_response["invitation"] 
+            json_invite["recipientKeys"] = [MyVerkey]
+            json_invite["label"] = app.username+":"+MyDID
+            print(type(json_invite))
+            print(json_invite)
             img = qrcode.make(json_invite)
             # Saving as an image file
             img.save('QRCode'+app.username+'.png')

@@ -292,6 +292,7 @@ async def ask_verkey(wallet_handle, user, contact):
         f = open(path, "w+")
     f = open(path, "r")
     DIDs = f.read().split("\n")
+    f.close()
     verkey = None
     for DID in DIDs:
         if ":" not in DID:

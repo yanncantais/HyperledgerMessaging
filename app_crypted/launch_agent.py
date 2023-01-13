@@ -7,13 +7,13 @@ import requests
 import asyncio
 import json
 from indy import did, crypto, wallet
-
+import time
 
 user = sys.argv[1]
 pwd = sys.argv[2]
 
 
-
+verkey_sent_label = "my verkey is:"
 PortFound = False
 if not os.path.isfile("ports.conf"):
     print("No ports.conf file found.")
@@ -78,6 +78,27 @@ async def close_w(wallet_handle):
     await wallet.close_wallet(wallet_handle)
 
 
+async def get_key(wallet_handle, their_did):
+    verkey = await did.key_for_local_did(wallet_handle, their_did) 
+    return verkey
+
+async def encrypt_message(user, wallet_handle, verkey, message):
+    encrypted_message = await crypto.pack_message(wallet_handle = wallet_handle, message = message, recipient_verkeys = [verkey], sender_verkey=None)    
+    return encrypted_message
+
+async def decrypt_message(wallet_handle, encrypted_message):
+    encrypted_message = json.dumps(encrypted_message)
+    encrypted_message = str.encode(encrypted_message)
+    print(encrypted_message)
+    decrypted_message = await crypto.unpack_message(wallet_handle, encrypted_message)
+    print(decrypted_message)
+    time.sleep(10)
+    return decrypted_message
+
+
+
+
+
 def flask_app():
     app_flask = Flask(__name__)        
     @app_flask.route('/webhooks/topic/basicmessages/', methods=['POST'])
@@ -85,7 +106,32 @@ def flask_app():
         data = request.get_json()
         connection_id = data["connection_id"]
         print(data["content"])
-        if data["content"] == ask_verkey_label:
+        content = data["content"]
+        if verkey_sent_label in data["content"]:
+            data["content"] = data["content"].replace(verkey_sent_label, "")
+            data["content"] = json.loads(data["content"])
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            success, wallet_handle = loop.run_until_complete(login(user, pwd))
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            content = "test"
+            message = loop.run_until_complete(decrypt_message(wallet_handle, data["content"]))
+            message = message.decode()
+            data = json.loads(message)
+            content = data["message"]
+            print(content)
+            Data = content.split("/")
+            contact = Data[0].split(":")[1]
+            TheirDID = Data[1].split(":")[1]
+            TheirVerkey = Data[2].split(":")[1]
+            loop.run_until_complete(store_did(user, wallet_handle, contact, TheirDID, TheirVerkey))
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(close_w(wallet_handle))
+            return "OK"
+        elif data["content"] == ask_verkey_label:
+            print(5)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             success, wallet_handle = loop.run_until_complete(login(user, pwd))
@@ -94,14 +140,52 @@ def flask_app():
             DID,Verkey = loop.run_until_complete(create_did(wallet_handle))
             print("message", DID, Verkey, "will be sent")
             Keys = 'name:'+user+'/did:'+DID+'/verkey:'+Verkey
-            url = "http://0.0.0.0:"+str(second_port)+"/connections/"+connection_id+"/send-message"
-            response = requests.post(url, json = {"content": Keys})
-            message_content = {'connection_id': connection_id, 'content': Keys, 'state': 'sent'}
+            url = "http://0.0.0.0:"+str(second_port)+"/connections/"+connection_id+"/send-message" 
+            r = requests.get("http://0.0.0.0:"+str(second_port)+"/connections").text
+            r_json = json.loads(r)
+            r_json = r_json["results"]
+            label = None
+            verkey = None
+            for item in r_json:
+                if item["rfc23_state"] == "completed":
+                    label = item["their_label"]
+                    break
+            path = user+"/their_dids.did"
+            print("label", label)
+            if label is not None and os.path.isfile(path): 
+                if ":" in label:
+                    label = label.split(":")[0]
+                f = open(path, "r")
+                DIDs = f.read().split("\n")
+                f.close()
+                for DID in DIDs:
+                    if ":" not in DID:
+                        continue
+                    DID = DID.split(":")
+                    name = DID[0]
+                    their_did = DID[1]
+                    if name == label:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        verkey = loop.run_until_complete(get_key(wallet_handle, their_did))
+                        break   
+            print("verkey", verkey)
+            if verkey is not None:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                Encrypted_Keys = loop.run_until_complete(encrypt_message(user, wallet_handle, verkey, Keys))
+                verkey_sent_label_bytes = verkey_sent_label.encode()
+                Message = {"content": verkey_sent_label_bytes+Encrypted_Keys}
+                response = requests.post(url, json = Message)
+            else:
+                response = requests.post(url, json = {"content": Keys})
             print(response.text)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(close_w(wallet_handle))
-        elif "did:" in data["content"] and "verkey:" in data["content"] and "name:" in data["content"]:
+            return "OKs"
+        elif "did:" in content and "verkey:" in content and "name:" in content:    
+            print(6)
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             success, wallet_handle = loop.run_until_complete(login(user, pwd))
@@ -113,7 +197,10 @@ def flask_app():
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(close_w(wallet_handle))
+            return "OK"
+
         else:
+            print(7)
             with open(user+"/"+connection_id+".dat", "a") as output:
                 json.dump(data, output)
             with open(user+"/"+connection_id+".dat", "a") as output:
